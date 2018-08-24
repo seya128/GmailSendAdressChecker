@@ -1,0 +1,15 @@
+{
+   "content_scripts": [ {
+      "all_frames": true,
+      "js": [ "checker.js" ],
+      "matches": [ "http://mail.google.com/*", "https://mail.google.com/*" ]
+   } ],
+   "description": "GMailのメール送信時に宛先を確認後、送信する。 (C)DORASU",
+   "icons": {
+      "128": "icon128.png",
+      "48": "icon48.png"
+   },
+   "name": "GMailSend Address Checker",
+   "version": "0.8",
+   "manifest_version": 2
+}
