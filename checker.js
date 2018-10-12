@@ -1,18 +1,257 @@
-(function() {
+(function () {
+
+	//言語ごとのデータ
+	var langData = {
+		"ja": {
+			"send": "送信",
+			"confirm": "確認",
+			"checkall": "すべてチェックしてください",
+			"subject": "件名",
+			"attached": "添付",
+			"noattach": "添付ファイルなし",
+		},
+		"en": {
+			"send" : "Send",
+			"confirm": "Confirm",
+			"checkall": "Please check all",
+			"subject": "Subject",
+			"attached": "Attached",
+			"noattach": "No attachment",
+		},
+		"af": {
+			"send": "Stuur"
+		},
+		"az": {
+			"send": "Göndər"
+		},
+		"id": {
+			"send": "Kirim"
+		},
+		"ms": {
+			"send": "Hantar"
+		},
+		"ca": {
+			"send": "Envia"
+		},
+		"cs": {
+			"send": "Odeslat"
+		},
+		"cy": {
+			"send": "Anfon"
+		},
+		"et": {
+			"send": "Saada"
+		},
+		"es": {
+			"send": "Enviar"
+		},
+		"es-419": {
+			"send": "Enviar"
+		},
+		"eu": {
+			"send": "Bidali"
+		},
+		"fil": {
+			"send": "Ipadala"
+		},
+		"fr": {
+			"send": "Envoyer"
+		},
+		"fr-CA": {
+			"send": "Envoyer"
+		},
+		"ga": {
+			"send": "Seol"
+		},
+		"gl": {
+			"send": "Enviar"
+		},
+		"hr": {
+			"send": "Pošalji"
+		},
+		"it": {
+			"send": "Invia"
+		},
+		"zu": {
+			"send": "Thumela"
+		},
+		"sw": {
+			"send": "Tuma"
+		},
+		"lv": {
+			"send": "Sūtīt"
+		},
+		"lt": {
+			"send": "Siųsti"
+		},
+		"hu": {
+			"send": "Küldés"
+		},
+		"nl": {
+			"send": "Verzenden"
+		},
+		"pl": {
+			"send": "Wyślij"
+		},
+		"pt-BR": {
+			"send": "Enviar"
+		},
+		"pt-PT": {
+			"send": "Enviar"
+		},
+		"ro": {
+			"send": "Trimite"
+		},
+		"sk": {
+			"send": "Odoslať"
+		},
+		"sl": {
+			"send": "Pošlji"
+		},
+		"fi": {
+			"send": "Lähetä"
+		},
+		"sv": {
+			"send": "Skicka"
+		},
+		"vi": {
+			"send": "Gửi"
+		},
+		"tr": {
+			"send": "Gönder"
+		},
+		"el": {
+			"send": "Αποστολή"
+		},
+		"bg": {
+			"send": "Изпращане"
+		},
+		"mn": {
+			"send": "Илгээх"
+		},
+		"ru": {
+			"send": "Отправить"
+		},
+		"sr": {
+			"send": "Пошаљи"
+		},
+		"uk": {
+			"send": "Надіслати"
+		},
+		"hy": {
+			"send": "Ուղարկել"
+		},
+		"iw": {
+			"send": "שליחה"
+		},
+		"ur": {
+			"send": "بھیجیں"
+		},
+		"ar": {
+			"send": "إرسال"
+		},
+		"fa": {
+			"send": "ارسال"
+		},
+		"ne": {
+			"send": "पठाउनुहोस्"
+		},
+		"mr": {
+			"send": "पाठवा"
+		},
+		"hi": {
+			"send": "भेजें"
+		},
+		"bn": {
+			"send": "পাঠান"
+		},
+		"gu": {
+			"send": "મોકલો"
+		},
+		"ta": {
+			"send": "அனுப்பு"
+		},
+		"te": {
+			"send": "పంపు"
+		},
+		"kn": {
+			"send": "ಕಳುಹಿಸು"
+		},
+		"ml": {
+			"send": "അയയ്ക്കുക"
+		},
+		"si": {
+			"send": "යවන්න"
+		},
+		"th": {
+			"send": "ส่ง"
+		},
+		"lo": {
+			"send": "ສົ່ງ"
+		},
+		"my": {
+			"send": "ပို့ရန်"
+		},
+		"ka": {
+			"send": "გაგზავნა"
+		},
+		"am": {
+			"send": "ላክ"
+		},
+		"chr": {
+			"send": "ᏫᎦᏅᏗ"
+		},
+		"km": {
+			"send": "ផ្"
+		},
+		"zh-HK": {
+			"send": "傳送"
+		},
+		"zh-TW": {
+			"send": "傳送"
+		},
+		"zh-CN": {
+			"send": "发送"
+		},
+		"ko": {
+			"send": "보내기"
+		},
+
+	};
+	function getLangData(attr) {
+		var lng = lang;
+		if (!langData[lng])
+			lng = "en";
+		
+		if (langData[lng][attr])
+			return langData[lng][attr];
+		else
+			return langData["en"][attr];
+	}
+
+	//
+	//GMailの言語設定
+	//
+	var lang;
+	function getLanguage() {
+		if (!lang) {
+			lang = document.getElementsByTagName('html')[0].lang;
+		}
+		console.log("LANG = " + lang);
+		return lang;
+	}
 
 	//
 	// チェックボックスを追加
 	//
-	function addCheckbox(html)
-	{
+	function addCheckbox(html) {
 		return '<input type="checkbox"> ' + html + '</input>';
 	}
 
 	//
 	// 添付ファイル名取得
 	//
-	function getAttachedFiles(node)
-	{
+	function getAttachedFiles(node) {
 		//<div class="dL" tabindex="-1" id=":eu" aria-label="添付ファイル GMailSendAdressCheckerSS.png。添付ファイルを表示するには Enter キーを、削除するには Delete キーを押してください">
 		// <input id=":em" name="attach" type="hidden" value="14d415a088af6894_14d415a088af6894_0.2_-1" checked="">
 		// <a class="dO" id=":en" href="?ui=2&amp;ik=0187644934&amp;view=att&amp;th=14d415a088af6894&amp;attid=0.2&amp;disp=safe&amp;realattid=f_i9jfa7u21&amp;zw" target="_blank">
@@ -29,14 +268,14 @@
 
 		var el_len = el.length;
 		if (el_len > 0) {
-			for (var i = 0; i< el.length; i++) {
+			for (var i = 0; i < el.length; i++) {
 
 				var el_div = el[i].querySelectorAll('div');
 
 				attachedFiles = attachedFiles + addCheckbox(el_div[0].innerText + el_div[1].innerText) + '<br/>';
 			}
 		} else {
-			attachedFiles = addCheckbox(" - 添付ファイルなし - ");
+			attachedFiles = addCheckbox(" - " + getLangData("noattach") + " - ");
 		}
 
 		return attachedFiles;
@@ -45,8 +284,7 @@
 	//
 	// ドメインのみ抽出
 	//
-	function getDomain(addressValue)
-	{
+	function getDomain(addressValue) {
 		var domain;
 
 		domain = addressValue.match(/[a-zA-z0-9\.-]+@([a-zA-z0-9\.-]+)/)
@@ -58,16 +296,14 @@
 	}
 
 	//アドレスリスト作成
-	function makeAddressList(addresses, whiteDomain)
-	{
+	function makeAddressList(addresses, whiteDomain) {
 		var list = "";
 
-		for(var i = 0, addressCount = addresses.length; i < addressCount; i++) {
+		for (var i = 0, addressCount = addresses.length; i < addressCount; i++) {
 			var addressValue = addresses[i].value;
 			if (addressValue) {
-				var text = addressValue.replace(/</g,"&lt;").replace(/>/g,"&gt;");
-				if (whiteDomain!="")
-				{
+				var text = addressValue.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+				if (whiteDomain != "") {
 					if (getDomain(addressValue) == whiteDomain)
 						text = '<font color="#00f">' + text + '</font>';
 					else
@@ -84,22 +320,21 @@
 
 
 	//確認ボタン追加
-	function appendKakuninButton(node)
-	{
+	function appendKakuninButton(node) {
 		//まず「送信」ボタンを探す
-		var d = node.querySelectorAll('div[aria-label^="送信"]');
+		var d = node.querySelectorAll('div[aria-label^="'+ getLangData("send") +'"]');
 		var dd = d[0];
 
 		//「送信」ボタンの前に「確認」ボタンを追加し、「送信」を非表示
 		if (dd != "") {
-			dd.style.backgroundImage = '';		//「送信」ボタンを赤色にしたのを取消
+			dd.style.backgroundImage = ''; //「送信」ボタンを赤色にしたのを取消
 			var el = dd.cloneNode();
 			el.id = "SAC_kakunin";
-			el.setAttribute("aria-label","確認");
-			el.setAttribute("data-tooltip","確認");
-			el.innerText = "確認";
+			el.setAttribute("aria-label", getLangData("confirm"));
+			el.setAttribute("data-tooltip", getLangData("confirm"));
+			el.innerText = getLangData("confirm");
 			// el.style.display = "inline-block";
-			el.onclick = function() {
+			el.onclick = function () {
 				var _this = this;
 
 				console.log("確認ボタンが押された");
@@ -128,7 +363,7 @@
 					// スタイルを設定する
 					var style = _element_overlay.style;
 					style.position = "fixed";
-					style.width  = "100%";
+					style.width = "100%";
 					style.height = "100%";
 					style.top = "0";
 					style.left = "0";
@@ -154,7 +389,7 @@
 					var _buttom = 0;
 					var style = _element_popup.style;
 					style.position = "absolute";
-					style.width  = "700px";
+					style.width = "700px";
 					style.backgroundColor = "#fee";
 					style.border = "5px #866 solid";
 					style.borderRadius = "10px";
@@ -173,7 +408,7 @@
 					_element_popup.draggable = 'true';
 					_element_popup.addEventListener(
 						'dragstart',
-						function(e){
+						function (e) {
 							//console.log("dragstart: (" + e.x + "," + e.y + ")" );
 							dragOldX = e.x;
 							dragOldY = e.y;
@@ -182,10 +417,10 @@
 					);
 					_element_popup.addEventListener(
 						'drag',
-						function(e){
+						function (e) {
 							//console.log("drag: (" + e.x + "," + e.y + ")");
 							if (e.x != 0 && e.y != 0) {
-								_right  -= e.x - dragOldX;
+								_right -= e.x - dragOldX;
 								_buttom -= e.y - dragOldY;
 								style.right = _right + "px";
 								style.bottom = _buttom + "px";
@@ -202,47 +437,47 @@
 				// ------------------------------------------------------------
 				_element_popup.innerHTML = '' +
 					'<div style="font-weight:bold; background:#866; color:#fff; padding:5px 20px; cursor:move">' +
-						'すべてチェックしてください' +
-						'<div style="float:right"><a href="http://www.dorasu.com">(C) DORASU</a></div>' +
+					getLangData("checkall") +
+					'<div style="float:right"><a href="http://www.dorasu.com">(C) DORASU</a></div>' +
 					'</div>' +
 					'<div style="margin:10px">' +
-						'<table borde="10" style="border:10; width:100%; cellspacing:10; cellpadding:10">' +
-						'<tr><td width="15%">From</td>' +
-							'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-							from +
-							'</td>' +
-						'</tr>' +
-						'<tr><td width="15%">To</td>' +
-							'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-							makeAddressList(node.querySelectorAll('input[name=to]'),whiteDomain) +
-							'</td>' +
-						'</tr>' +
-						'<tr><td>Cc</td>' +
-							'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-							makeAddressList(node.querySelectorAll('input[name=cc]'),whiteDomain) +
-							'</td>' +
-						'</tr>' +
-						'<tr><td>Bcc</td>' +
-							'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-							makeAddressList(node.querySelectorAll('input[name=bcc]'),whiteDomain) +
-							'</td>' +
-						'</tr>' +
-						'<tr><td>件名</td>' +
-							'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-							makeAddressList(node.querySelectorAll('input[name=subject]'),"") +
-							'</td>' +
-						'</tr>' +
-						'<tr><td>添付</td>' +
-							'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-							getAttachedFiles(node) +
-							'</td>' +
-						'</tr>' +
-						'</table>' +
+					'<table borde="10" style="border:10; width:100%; cellspacing:10; cellpadding:10">' +
+					'<tr><td width="15%">From</td>' +
+					'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
+					from +
+					'</td>' +
+					'</tr>' +
+					'<tr><td width="15%">To</td>' +
+					'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
+					makeAddressList(node.querySelectorAll('input[name=to]'), whiteDomain) +
+					'</td>' +
+					'</tr>' +
+					'<tr><td>Cc</td>' +
+					'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
+					makeAddressList(node.querySelectorAll('input[name=cc]'), whiteDomain) +
+					'</td>' +
+					'</tr>' +
+					'<tr><td>Bcc</td>' +
+					'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
+					makeAddressList(node.querySelectorAll('input[name=bcc]'), whiteDomain) +
+					'</td>' +
+					'</tr>' +
+					'<tr><td>' + getLangData("subject") + '</td>' +
+					'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
+					makeAddressList(node.querySelectorAll('input[name=subject]'), "") +
+					'</td>' +
+					'</tr>' +
+					'<tr><td>' + getLangData("attached") + '</td>' +
+					'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
+					getAttachedFiles(node) +
+					'</td>' +
+					'</tr>' +
+					'</table>' +
 					'</div>' +
 
 					'<div style="margin:10px; text-align:center; color">' +
-						'<input type="button" id="SAC_OK" style="width:40%; height:40px; font-weight:bold; color:#444" value="O K">　' +
-						'<input type="button" id="SAC_CANCEL" style="width:40%; height:40px; font-weight:bold; color:#444" value="CANCEL">' +
+					'<input type="button" id="SAC_OK" style="width:40%; height:40px; font-weight:bold; color:#444" value="O K">　' +
+					'<input type="button" id="SAC_CANCEL" style="width:40%; height:40px; font-weight:bold; color:#444" value="CANCEL">' +
 					'</div>';
 
 				// ------------------------------------------------------------
@@ -251,8 +486,8 @@
 				var btnOK = document.getElementById("SAC_OK");
 				btnOK.disabled = true;
 				btnOK.style.opacity = 0.5;
-				btnOK.onclick = function (){
-					_element_overlay.parentNode.removeChild(_element_overlay);		//ポップアップ削除(オーバーレイごと削除）
+				btnOK.onclick = function () {
+					_element_overlay.parentNode.removeChild(_element_overlay); //ポップアップ削除(オーバーレイごと削除）
 					// _this.nextSibling.style.display = "";							//「送信」表示
 					// _this.nextSibling.style.backgroundImage = '-webkit-linear-gradient(top,#F44,#E00)';		//「送信」ボタンを赤色に
 					d.forEach(function (elem) {
@@ -260,21 +495,21 @@
 						elem.style.backgroundImage = '-webkit-linear-gradient(top,#F44,#E00)'; //「送信」ボタンを赤色に
 						elem.style.color = "#FFF";
 					});
-					_this.parentNode.removeChild(_this);							//「確認」削除
+					_this.parentNode.removeChild(_this); //「確認」削除
 				};
 
-				document.getElementById("SAC_CANCEL").onclick = function (){
-					_element_overlay.parentNode.removeChild(_element_overlay);		//ポップアップ削除(オーバーレイごと削除）
+				document.getElementById("SAC_CANCEL").onclick = function () {
+					_element_overlay.parentNode.removeChild(_element_overlay); //ポップアップ削除(オーバーレイごと削除）
 				};
 				//チェックボックスのイベント
 				var chbx = _element_popup.querySelectorAll('input[type=checkbox]');
 				var chbxLen = chbx.length;
-				for (var i=0; i<chbxLen; i++) {
-					chbx[i].onclick = function() {
+				for (var i = 0; i < chbxLen; i++) {
+					chbx[i].onclick = function () {
 						if (this.checked) {
-							chbxLen --;
+							chbxLen--;
 						} else {
-							chbxLen ++;
+							chbxLen++;
 						}
 						if (chbxLen <= 0) {
 							btnOK.style.backgroundImage = '-webkit-linear-gradient(top,#f44,#ecc)';
@@ -294,7 +529,7 @@
 				elem.style.display = "none";
 			});
 			// d[0].style.display = "none";
-			d[0].parentNode.insertBefore(el,dd);
+			d[0].parentNode.insertBefore(el, dd);
 		}
 
 
@@ -309,13 +544,12 @@
 	//
 	// メール作成エリアのノードを取得
 	//  複数のメール作成がある場合もある
-	function getMailEditAreaNode()
-	{
+	function getMailEditAreaNode() {
 
 		var node_form = document.querySelectorAll('td form[method=POST]');
 
-		var node_div=[];
-		for (var i=0, len=node_form.length; i < len; i++) {
+		var node_div = [];
+		for (var i = 0, len = node_form.length; i < len; i++) {
 			node_div[i] = node_form[i].parentNode;
 		}
 
@@ -333,12 +567,16 @@
 
 		document.addEventListener('focus', function (event) {
 			var target = event.target;
-			if (target.name !== 'to' && target.name !== 'cc' && target.name !== 'bcc' && target.name != 'subjectbox' && target.getAttribute('aria-label') != "メッセージ本文") return;
+			if (target.name !== 'to' && target.name !== 'cc' && target.name !== 'bcc' && target.name != 'subjectbox' && target.getAttribute('role') != "textbox") return;
+
+			getLanguage();	//Gmailの言語設定取得、保存
 
 			var node = getMailEditAreaNode();
 
+			var q = 'div[aria-label^="' + getLangData("confirm") + '"]';
+			console.log(q);
 			for (var i = 0; i < node.length; i++) {
-				if (node[i].querySelectorAll('div[aria-label^="確認"]').length == 0) {
+				if (node[i].querySelectorAll(q).length == 0) {
 					appendKakuninButton(node[i]);
 				}
 			}
@@ -349,10 +587,10 @@
 		document.addEventListener('keydown', function (event) {
 			if (event.key == 'Enter' && (event.ctrlKey || event.metaKey)) {
 				console.log("keydown ctrl+Enter");
-				event.stopPropagation();	//イベントの伝搬を止める
+				event.stopPropagation(); //イベントの伝搬を止める
 			}
 		}, true);
-	
+
 	}, 100); // setTimeout
 
 })();
