@@ -1,244 +1,33 @@
 (function () {
 
 	//言語ごとのデータ
+	var langSendText = "";		//送信ボタンのテキスト
 	var langData = {
-		"ja": {
-			"send": "送信",
+		"送信": {
 			"confirm": "確認",
 			"checkall": "すべてチェックしてください",
 			"subject": "件名",
 			"attached": "添付",
 			"noattach": "添付ファイルなし",
 		},
-		"en": {
-			"send" : "Send",
+		"Send": {
 			"confirm": "Confirm",
 			"checkall": "Please check all",
 			"subject": "Subject",
 			"attached": "Attached",
 			"noattach": "No attachment",
 		},
-		"af": {
-			"send": "Stuur"
-		},
-		"az": {
-			"send": "Göndər"
-		},
-		"id": {
-			"send": "Kirim"
-		},
-		"ms": {
-			"send": "Hantar"
-		},
-		"ca": {
-			"send": "Envia"
-		},
-		"cs": {
-			"send": "Odeslat"
-		},
-		"cy": {
-			"send": "Anfon"
-		},
-		"et": {
-			"send": "Saada"
-		},
-		"es": {
-			"send": "Enviar"
-		},
-		"es-419": {
-			"send": "Enviar"
-		},
-		"eu": {
-			"send": "Bidali"
-		},
-		"fil": {
-			"send": "Ipadala"
-		},
-		"fr": {
-			"send": "Envoyer"
-		},
-		"fr-CA": {
-			"send": "Envoyer"
-		},
-		"ga": {
-			"send": "Seol"
-		},
-		"gl": {
-			"send": "Enviar"
-		},
-		"hr": {
-			"send": "Pošalji"
-		},
-		"it": {
-			"send": "Invia"
-		},
-		"zu": {
-			"send": "Thumela"
-		},
-		"sw": {
-			"send": "Tuma"
-		},
-		"lv": {
-			"send": "Sūtīt"
-		},
-		"lt": {
-			"send": "Siųsti"
-		},
-		"hu": {
-			"send": "Küldés"
-		},
-		"nl": {
-			"send": "Verzenden"
-		},
-		"pl": {
-			"send": "Wyślij"
-		},
-		"pt-BR": {
-			"send": "Enviar"
-		},
-		"pt-PT": {
-			"send": "Enviar"
-		},
-		"ro": {
-			"send": "Trimite"
-		},
-		"sk": {
-			"send": "Odoslať"
-		},
-		"sl": {
-			"send": "Pošlji"
-		},
-		"fi": {
-			"send": "Lähetä"
-		},
-		"sv": {
-			"send": "Skicka"
-		},
-		"vi": {
-			"send": "Gửi"
-		},
-		"tr": {
-			"send": "Gönder"
-		},
-		"el": {
-			"send": "Αποστολή"
-		},
-		"bg": {
-			"send": "Изпращане"
-		},
-		"mn": {
-			"send": "Илгээх"
-		},
-		"ru": {
-			"send": "Отправить"
-		},
-		"sr": {
-			"send": "Пошаљи"
-		},
-		"uk": {
-			"send": "Надіслати"
-		},
-		"hy": {
-			"send": "Ուղարկել"
-		},
-		"iw": {
-			"send": "שליחה"
-		},
-		"ur": {
-			"send": "بھیجیں"
-		},
-		"ar": {
-			"send": "إرسال"
-		},
-		"fa": {
-			"send": "ارسال"
-		},
-		"ne": {
-			"send": "पठाउनुहोस्"
-		},
-		"mr": {
-			"send": "पाठवा"
-		},
-		"hi": {
-			"send": "भेजें"
-		},
-		"bn": {
-			"send": "পাঠান"
-		},
-		"gu": {
-			"send": "મોકલો"
-		},
-		"ta": {
-			"send": "அனுப்பு"
-		},
-		"te": {
-			"send": "పంపు"
-		},
-		"kn": {
-			"send": "ಕಳುಹಿಸು"
-		},
-		"ml": {
-			"send": "അയയ്ക്കുക"
-		},
-		"si": {
-			"send": "යවන්න"
-		},
-		"th": {
-			"send": "ส่ง"
-		},
-		"lo": {
-			"send": "ສົ່ງ"
-		},
-		"my": {
-			"send": "ပို့ရန်"
-		},
-		"ka": {
-			"send": "გაგზავნა"
-		},
-		"am": {
-			"send": "ላክ"
-		},
-		"chr": {
-			"send": "ᏫᎦᏅᏗ"
-		},
-		"km": {
-			"send": "ផ្"
-		},
-		"zh-HK": {
-			"send": "傳送"
-		},
-		"zh-TW": {
-			"send": "傳送"
-		},
-		"zh-CN": {
-			"send": "发送"
-		},
-		"ko": {
-			"send": "보내기"
-		},
 
 	};
 	function getLangData(attr) {
-		var lng = lang;
-		if (!langData[lng])
-			lng = "en";
+		var lng = langSendText;
+		if (!langData[lng])		//データがなければ英語
+			lng = "Send";
 		
 		if (langData[lng][attr])
 			return langData[lng][attr];
 		else
-			return langData["en"][attr];
-	}
-
-	//
-	//GMailの言語設定
-	//
-	var lang;
-	function getLanguage() {
-		if (!lang) {
-			lang = document.getElementsByTagName('html')[0].lang;
-		}
-		console.log("LANG = " + lang);
-		return lang;
+			return langData["Send"][attr];
 	}
 
 	//
@@ -318,11 +107,31 @@
 	}
 
 
+	// 送信ボタンを探す
+	function getSendButton(node) {
+		//送信ボタンのテキストを取得
+		var d = node.querySelectorAll('div[aria-label*="Enter)"]');
+		// console.log(d);
+		if (!d) return null;
+
+		var text = d[0].innerText;
+		// console.log(text);
+		langSendText = text;
+
+		var dd = node.querySelectorAll('div[aria-label^="' + text + '"]');
+		return dd;
+	}
+
 
 	//確認ボタン追加
 	function appendKakuninButton(node) {
 		//まず「送信」ボタンを探す
-		var d = node.querySelectorAll('div[aria-label^="'+ getLangData("send") +'"]');
+		var d = getSendButton(node);
+		// console.log(d);
+		if (!d) {
+			console.log("送信ボタンが見つかりませんでした。");
+			return;
+		}
 		var dd = d[0];
 
 		//「送信」ボタンの前に「確認」ボタンを追加し、「送信」を非表示
@@ -337,7 +146,7 @@
 			el.onclick = function () {
 				var _this = this;
 
-				console.log("確認ボタンが押された");
+				// console.log("確認ボタンが押された");
 
 				// fromのドメイン取得
 				var from = node.querySelectorAll('input[name=from]')[0].value;
@@ -569,14 +378,11 @@
 			var target = event.target;
 			if (target.name !== 'to' && target.name !== 'cc' && target.name !== 'bcc' && target.name != 'subjectbox' && target.getAttribute('role') != "textbox") return;
 
-			getLanguage();	//Gmailの言語設定取得、保存
-
 			var node = getMailEditAreaNode();
 
-			var q = 'div[aria-label^="' + getLangData("confirm") + '"]';
-			console.log(q);
 			for (var i = 0; i < node.length; i++) {
-				if (node[i].querySelectorAll(q).length == 0) {
+				//確認ボタンを追加していない箇所に、確認ボタンを追加
+				if (node[i].querySelectorAll('div#SAC_kakunin').length == 0) {
 					appendKakuninButton(node[i]);
 				}
 			}
