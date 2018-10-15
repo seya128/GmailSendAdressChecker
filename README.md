@@ -3,6 +3,9 @@ GMailのメール送信時に宛先を確認後、送信するChrome拡張
 
 [![Image from Gyazo](https://i.gyazo.com/61d7758ed4c08ff71ee58192ea23a96c.png)](https://gyazo.com/61d7758ed4c08ff71ee58192ea23a96c)
 
+## chrome ウェブストア
+ https://chrome.google.com/webstore/detail/gmailsend-address-checker/gdckkpniogfhndklmlgbnolnkbceeofp
+
 ## 概要
 GMailのメール送信時に宛先を確認後、送信する。 (C)DORASU  
 メール誤送信を防止するための確認ダイアログを表示します。  
