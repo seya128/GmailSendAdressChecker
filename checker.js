@@ -142,7 +142,7 @@
 			el.setAttribute("aria-label", getLangData("confirm"));
 			el.setAttribute("data-tooltip", getLangData("confirm"));
 			el.innerText = getLangData("confirm");
-			// el.style.display = "inline-block";
+			el.style.backgroundImage = '-webkit-linear-gradient(top,#08bc4c,#15492b)'; //「確認」ボタンを緑に
 			el.onclick = function () {
 				var _this = this;
 
