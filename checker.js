@@ -111,8 +111,9 @@
 	function getSendButton(node) {
 		//送信ボタンのテキストを取得
 		var d = node.querySelectorAll('div[aria-label*="Enter)"]');
-		// console.log(d);
-		if (!d) return null;
+		console.log(d);
+
+		if (!d || d.length<=0) return null;
 
 		var text = d[0].innerText;
 		// console.log(text);
@@ -129,7 +130,7 @@
 		var d = getSendButton(node);
 		// console.log(d);
 		if (!d) {
-			console.log("送信ボタンが見つかりませんでした。");
+			// console.log("送信ボタンが見つかりませんでした。");
 			return;
 		}
 		var dd = d[0];
