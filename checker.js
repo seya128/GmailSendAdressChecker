@@ -1,4 +1,11 @@
 (function () {
+	//追加するエレメントのID
+	var ID_OVERLAY = 'SAC_overlay';		//オーバーレイエレメントID
+	var ID_POPUP = 'SAC_popup';			//ポップアップウィンドウID
+	var ID_CONFIRM = 'SAC_confirm';
+	var ID_OK = 'SAC_OK';
+	var ID_CANCEL = 'SAC_CANCEL';
+
 
 	//言語ごとのデータ
 	var langSendText = "";		//送信ボタンのテキスト
@@ -29,6 +36,12 @@
 		else
 			return langData["Send"][attr];
 	}
+
+
+
+	//
+	// ******* 確認用ポップアップウィンドウ関連 *******
+	//
 
 	//
 	// チェックボックスを追加
@@ -107,6 +120,196 @@
 	}
 
 
+	// オーバーレイ用エレメント作成
+	//   ポップアップウィンドウ以外を暗くするためにウィンドウ全体に載せるエレメント
+	function createOverlayElement() {
+		var _element_overlay = document.createElement("div");
+
+		_element_overlay.id = ID_OVERLAY;
+
+		// スタイルを設定する
+		var style = _element_overlay.style;
+		style.position = "fixed";
+		style.width = "100%";
+		style.height = "100%";
+		style.top = "0";
+		style.left = "0";
+		style.backgroundColor = "rgba(0,0,0, 0.15)";
+		style.zIndex = "998";
+
+		return _element_overlay;
+	}
+
+	// オーバーレイ用エレメント追加
+	function appendOverlayElement() {
+		var _element_overlay = document.getElementById(ID_OVERLAY);
+		if (!_element_overlay) {	//すでにエレメントが存在している場合は作成しない
+			_element_overlay = createOverlayElement();
+			// BODY のノードリストに登録する
+			document.body.appendChild(_element_overlay);
+		}
+		return _element_overlay;
+	}
+
+
+
+	// ポップアップ用エレメントを作成
+	function createPopupElement(_editFormNode) {
+		var	_element_popup = document.createElement("div");
+		_element_popup.id = ID_POPUP;
+
+		// スタイルを設定する
+		var _right = 10;
+		var _buttom = 0;
+		var style = _element_popup.style;
+		style.position = "absolute";
+		style.width = "700px";
+		style.backgroundColor = "#fee";
+		style.border = "5px #866 solid";
+		style.borderRadius = "10px";
+		style.boxShadow = "5px 5px 10px #444";
+		style.right = _right + "px";
+		style.bottom = _buttom + "px";
+		//style.zIndex = "999";
+		style.fontSize = "90%";
+
+		// ドラッグ設定
+		var dragOldX;
+		var dragOldY;
+		_element_popup.draggable = 'true';
+		_element_popup.addEventListener(
+			'dragstart',
+			function (e) {
+				//console.log("dragstart: (" + e.x + "," + e.y + ")" );
+				dragOldX = e.x;
+				dragOldY = e.y;
+			},
+			false
+		);
+		_element_popup.addEventListener(
+			'drag',
+			function (e) {
+				//console.log("drag: (" + e.x + "," + e.y + ")");
+				if (e.x != 0 && e.y != 0) {
+					_right -= e.x - dragOldX;
+					_buttom -= e.y - dragOldY;
+					style.right = _right + "px";
+					style.bottom = _buttom + "px";
+					dragOldX = e.x;
+					dragOldY = e.y;
+				}
+			},
+			false
+		);
+
+		// fromのドメイン取得
+		var from = _editFormNode.querySelectorAll('input[name=from]')[0].value;
+		if (from == "") {
+			//アカウントが１つしか設定されていないとfromに値がはいらないので、タイトルを使う。これでいいのかは怪しい
+			console.log(document.title);
+			from = document.title.match(/- ([a-zA-z0-9\.-]+@[a-zA-z0-9\.-]+) -/);
+			if (from != null)
+				from = from[1];
+		}
+		var whiteDomain = getDomain(from);
+		//チェックボックスを追加
+		from = addCheckbox(from);
+
+		// ポップアップウィンドウHTML
+		_element_popup.innerHTML = '' +
+			'<div style="font-weight:bold; background:#866; color:#fff; padding:5px 20px; cursor:move">' +
+			getLangData("checkall") +
+			'<div style="float:right"><a href="http://www.dorasu.com">(C) DORASU</a></div>' +
+			'</div>' +
+			'<div style="margin:10px">' +
+			'<table borde="10" style="border:10; width:100%; cellspacing:10; cellpadding:10">' +
+			'<tr><td width="15%">From</td>' +
+			'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
+			from +
+			'</td>' +
+			'</tr>' +
+			'<tr><td width="15%">To</td>' +
+			'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
+			makeAddressList(_editFormNode.querySelectorAll('input[name=to]'), whiteDomain) +
+			'</td>' +
+			'</tr>' +
+			'<tr><td>Cc</td>' +
+			'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
+			makeAddressList(_editFormNode.querySelectorAll('input[name=cc]'), whiteDomain) +
+			'</td>' +
+			'</tr>' +
+			'<tr><td>Bcc</td>' +
+			'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
+			makeAddressList(_editFormNode.querySelectorAll('input[name=bcc]'), whiteDomain) +
+			'</td>' +
+			'</tr>' +
+			'<tr><td>' + getLangData("subject") + '</td>' +
+			'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
+			makeAddressList(_editFormNode.querySelectorAll('input[name=subject]'), "") +
+			'</td>' +
+			'</tr>' +
+			'<tr><td>' + getLangData("attached") + '</td>' +
+			'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
+			getAttachedFiles(_editFormNode) +
+			'</td>' +
+			'</tr>' +
+			'</table>' +
+			'</div>' +
+
+			'<div style="margin:10px; text-align:center; color">' +
+			'<input type="button" id="' + ID_OK + '" style="width:40%; height:40px; font-weight:bold; color:#444" value="O K">　' +
+			'<input type="button" id="' + ID_CANCEL + '" style="width:40%; height:40px; font-weight:bold; color:#444" value="CANCEL">' +
+			'</div>';
+
+
+		return _element_popup;
+	}
+
+	// ポップアップ用エレメント追加
+	function appendPopupElement(_parentNode, _editFormNode) {
+		var _element_popup = document.getElementById(ID_POPUP);
+		if (!_element_popup) {	//すでにエレメントが存在している場合は作成しない
+			_element_popup = createPopupElement(_editFormNode);
+			// ノードリストに登録する
+			_parentNode.appendChild(_element_popup);
+
+			//チェックボックスのイベント
+			var btnOK = document.getElementById(ID_OK);
+			var chbx = _element_popup.querySelectorAll('input[type=checkbox]');
+			var chbxLen = chbx.length;
+			for (var i = 0; i < chbxLen; i++) {
+				chbx[i].onclick = function () {
+					if (this.checked) {
+						chbxLen--;
+					} else {
+						chbxLen++;
+					}
+					if (chbxLen <= 0) {
+						btnOK.style.backgroundImage = '-webkit-linear-gradient(top,#f44,#ecc)';
+						btnOK.disabled = false;
+						btnOK.style.opacity = 1.0;
+					} else {
+						btnOK.style.backgroundImage = '';
+						btnOK.disabled = true;
+						btnOK.style.opacity = 0.5;
+					}
+				}
+			}
+		}
+
+		return _element_popup;
+	}
+
+
+
+
+
+	
+	//
+	// ******* ボタン検索関連 *******
+	//
+
+
 	// 送信ボタンを探す
 	function getSendButton(node) {
 		//送信ボタンのテキストを取得
@@ -139,7 +342,7 @@
 		if (dd != "") {
 			dd.style.backgroundImage = ''; //「送信」ボタンを赤色にしたのを取消
 			var el = dd.cloneNode();
-			el.id = "SAC_kakunin";
+			el.id = ID_CONFIRM;
 			el.setAttribute("aria-label", getLangData("confirm"));
 			el.setAttribute("data-tooltip", getLangData("confirm"));
 			el.innerText = getLangData("confirm");
@@ -149,151 +352,18 @@
 
 				// console.log("確認ボタンが押された");
 
-				// fromのドメイン取得
-				var from = node.querySelectorAll('input[name=from]')[0].value;
-				if (from == "") {
-					//アカウントが１つしか設定されていないとfromに値がはいらないので、タイトルを使う。これでいいのかは怪しい
-					console.log(document.title);
-					from = document.title.match(/- ([a-zA-z0-9\.-]+@[a-zA-z0-9\.-]+) -/);
-					if (from != null)
-						from = from[1];
-				}
-				var whiteDomain = getDomain(from);
-				//チェックボックスを追加
-				from = addCheckbox(from);
 
-				// ------------------------------------------------------------
-				// オーバーレイ用エレメント
-				// ------------------------------------------------------------
-				var _element_overlay = document.getElementById('SAC_overlay');
-				if (_element_overlay == null) {
-					_element_overlay = document.createElement("div");
-					_element_overlay.id = 'SAC_overlay';
+				//ポップアップウィンドウ以外を暗くするためにウィンドウ全体を暗くする
+				var _element_overlay = appendOverlayElement();
 
-					// スタイルを設定する
-					var style = _element_overlay.style;
-					style.position = "fixed";
-					style.width = "100%";
-					style.height = "100%";
-					style.top = "0";
-					style.left = "0";
-					style.backgroundColor = "rgba(0,0,0, 0.15)";
-					style.zIndex = "998";
-
-					// BODY のノードリストに登録する
-					document.body.appendChild(_element_overlay);
-
-				}
-
-				// ------------------------------------------------------------
-				// ポップアップ用エレメント
-				// ------------------------------------------------------------
 				// ポップアップ用エレメントを作成
-				var _element_popup = document.getElementById('SAC_popup');
-				if (_element_popup == null) {
-					_element_popup = document.createElement("div");
-					_element_popup.id = 'SAC_popup';
+				var _element_popup = appendPopupElement(_element_overlay, node);
 
-					// スタイルを設定する
-					var _right = 10;
-					var _buttom = 0;
-					var style = _element_popup.style;
-					style.position = "absolute";
-					style.width = "700px";
-					style.backgroundColor = "#fee";
-					style.border = "5px #866 solid";
-					style.borderRadius = "10px";
-					style.boxShadow = "5px 5px 10px #444";
-					style.right = _right + "px";
-					style.bottom = _buttom + "px";
-					//style.zIndex = "999";
-					style.fontSize = "90%";
-
-					// BODY のノードリストに登録する
-					_element_overlay.appendChild(_element_popup);
-
-					// ドラッグ設定
-					var dragOldX;
-					var dragOldY;
-					_element_popup.draggable = 'true';
-					_element_popup.addEventListener(
-						'dragstart',
-						function (e) {
-							//console.log("dragstart: (" + e.x + "," + e.y + ")" );
-							dragOldX = e.x;
-							dragOldY = e.y;
-						},
-						false
-					);
-					_element_popup.addEventListener(
-						'drag',
-						function (e) {
-							//console.log("drag: (" + e.x + "," + e.y + ")");
-							if (e.x != 0 && e.y != 0) {
-								_right -= e.x - dragOldX;
-								_buttom -= e.y - dragOldY;
-								style.right = _right + "px";
-								style.bottom = _buttom + "px";
-								dragOldX = e.x;
-								dragOldY = e.y;
-							}
-						},
-						false
-					);
-				}
-
-				// ------------------------------------------------------------
-				// HTML 文字列を指定して、DOM オブジェクトをまとめて構築する
-				// ------------------------------------------------------------
-				_element_popup.innerHTML = '' +
-					'<div style="font-weight:bold; background:#866; color:#fff; padding:5px 20px; cursor:move">' +
-					getLangData("checkall") +
-					'<div style="float:right"><a href="http://www.dorasu.com">(C) DORASU</a></div>' +
-					'</div>' +
-					'<div style="margin:10px">' +
-					'<table borde="10" style="border:10; width:100%; cellspacing:10; cellpadding:10">' +
-					'<tr><td width="15%">From</td>' +
-					'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-					from +
-					'</td>' +
-					'</tr>' +
-					'<tr><td width="15%">To</td>' +
-					'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-					makeAddressList(node.querySelectorAll('input[name=to]'), whiteDomain) +
-					'</td>' +
-					'</tr>' +
-					'<tr><td>Cc</td>' +
-					'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-					makeAddressList(node.querySelectorAll('input[name=cc]'), whiteDomain) +
-					'</td>' +
-					'</tr>' +
-					'<tr><td>Bcc</td>' +
-					'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-					makeAddressList(node.querySelectorAll('input[name=bcc]'), whiteDomain) +
-					'</td>' +
-					'</tr>' +
-					'<tr><td>' + getLangData("subject") + '</td>' +
-					'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-					makeAddressList(node.querySelectorAll('input[name=subject]'), "") +
-					'</td>' +
-					'</tr>' +
-					'<tr><td>' + getLangData("attached") + '</td>' +
-					'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-					getAttachedFiles(node) +
-					'</td>' +
-					'</tr>' +
-					'</table>' +
-					'</div>' +
-
-					'<div style="margin:10px; text-align:center; color">' +
-					'<input type="button" id="SAC_OK" style="width:40%; height:40px; font-weight:bold; color:#444" value="O K">　' +
-					'<input type="button" id="SAC_CANCEL" style="width:40%; height:40px; font-weight:bold; color:#444" value="CANCEL">' +
-					'</div>';
 
 				// ------------------------------------------------------------
 				// クリック時に実行されるイベント
 				// ------------------------------------------------------------
-				var btnOK = document.getElementById("SAC_OK");
+				var btnOK = document.getElementById(ID_OK);
 				btnOK.disabled = true;
 				btnOK.style.opacity = 0.5;
 				btnOK.onclick = function () {
@@ -308,37 +378,18 @@
 					_this.parentNode.removeChild(_this); //「確認」削除
 				};
 
-				document.getElementById("SAC_CANCEL").onclick = function () {
+				document.getElementById(ID_CANCEL).onclick = function () {
 					_element_overlay.parentNode.removeChild(_element_overlay); //ポップアップ削除(オーバーレイごと削除）
 				};
-				//チェックボックスのイベント
-				var chbx = _element_popup.querySelectorAll('input[type=checkbox]');
-				var chbxLen = chbx.length;
-				for (var i = 0; i < chbxLen; i++) {
-					chbx[i].onclick = function () {
-						if (this.checked) {
-							chbxLen--;
-						} else {
-							chbxLen++;
-						}
-						if (chbxLen <= 0) {
-							btnOK.style.backgroundImage = '-webkit-linear-gradient(top,#f44,#ecc)';
-							btnOK.disabled = false;
-							btnOK.style.opacity = 1.0;
-						} else {
-							btnOK.style.backgroundImage = '';
-							btnOK.disabled = true;
-							btnOK.style.opacity = 0.5;
-						}
-					}
-				}
 
 			}
 
+			// 「送信」関連ボタンを非表示
 			d.forEach(function (elem) {
 				elem.style.display = "none";
 			});
-			// d[0].style.display = "none";
+
+			// 「確認」ボタン追加
 			d[0].parentNode.insertBefore(el, dd);
 		}
 
@@ -352,9 +403,9 @@
 
 
 	//
-	// メール作成エリアのノードを取得
+	// メール作成フォームエリアのノードを取得
 	//  複数のメール作成がある場合もある
-	function getMailEditAreaNode() {
+	function getMailEditFormNode() {
 
 		var node_form = document.querySelectorAll('td form[method=POST]');
 
@@ -365,7 +416,6 @@
 
 		return node_div;
 	}
-
 
 
 	//----------------------------
@@ -379,12 +429,12 @@
 			var target = event.target;
 			if (target.name !== 'to' && target.name !== 'cc' && target.name !== 'bcc' && target.name != 'subjectbox' && target.getAttribute('role') != "textbox") return;
 
-			var node = getMailEditAreaNode();
+			var editFormNode = getMailEditFormNode();
 
-			for (var i = 0; i < node.length; i++) {
+			for (var i = 0; i < editFormNode.length; i++) {
 				//確認ボタンを追加していない箇所に、確認ボタンを追加
-				if (node[i].querySelectorAll('div#SAC_kakunin').length == 0) {
-					appendKakuninButton(node[i]);
+				if (editFormNode[i].querySelectorAll('div#'+ID_CONFIRM).length == 0) {
+					appendKakuninButton(editFormNode[i]);
 				}
 			}
 		}, true); // event listener focus
