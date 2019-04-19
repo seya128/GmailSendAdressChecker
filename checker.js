@@ -312,18 +312,28 @@
 
 	// 送信ボタンを探す
 	function getSendButton(node) {
-		//送信ボタンのテキストを取得
+		//送信ボタンのテキストを取得（各言語によってテキストが違う）
 		var d = node.querySelectorAll('div[aria-label*="Enter)"]');
-		console.log(d);
-
 		if (!d || d.length<=0) return null;
 
 		var text = d[0].innerText;
 		// console.log(text);
 		langSendText = text;
 
+		//取得したテキストのあるボタンを探す
 		var dd = node.querySelectorAll('div[aria-label^="' + text + '"]');
-		return dd;
+
+		//送信オプションボタンが追加されたので、それも探す 
+		var ddd = [];
+		dd.forEach(function (elem) {
+			ddd.push(elem);
+			if (elem.nextElementSibling && elem.nextElementSibling.getAttribute('aria-label'))
+				ddd.push(elem.nextElementSibling);
+		});
+
+		console.log(ddd);
+
+		return ddd;
 	}
 
 
