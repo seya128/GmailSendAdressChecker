@@ -312,28 +312,17 @@
 
 	// 送信ボタンを探す
 	function getSendButton(node) {
-		//送信ボタンのテキストを取得（各言語によってテキストが違う）
+		//送信ボタン検索
+		// 言語によって(Ctrl + Enter)だったり(Ctrl-Enter)だったり・・・
 		var d = node.querySelectorAll('div[aria-label*="Enter)"]');
 		if (!d || d.length<=0) return null;
 
-		var text = d[0].innerText;
-		// console.log(text);
+		//ここの文字の先頭２文字で言語を判断
+		var text = d[0].innerText.substr(0,2);
 		langSendText = text;
+		// console.log(text);
 
-		//取得したテキストのあるボタンを探す
-		var dd = node.querySelectorAll('div[aria-label^="' + text + '"]');
-
-		//送信オプションボタンが追加されたので、それも探す 
-		var ddd = [];
-		dd.forEach(function (elem) {
-			ddd.push(elem);
-			if (elem.nextElementSibling && elem.nextElementSibling.getAttribute('aria-label'))
-				ddd.push(elem.nextElementSibling);
-		});
-
-		console.log(ddd);
-
-		return ddd;
+		return d;
 	}
 
 
@@ -350,18 +339,21 @@
 
 		//「送信」ボタンの前に「確認」ボタンを追加し、「送信」を非表示
 		if (dd != "") {
+			// 送信ボタン一連をOFFするための親ノード
+			var pd = dd.parentNode;
+
+			// 送信ボタンのコピーを作成し、確認ボタンにする
 			dd.style.backgroundImage = ''; //「送信」ボタンを赤色にしたのを取消
 			var el = dd.cloneNode();
 			el.id = ID_CONFIRM;
 			el.setAttribute("aria-label", getLangData("confirm"));
 			el.setAttribute("data-tooltip", getLangData("confirm"));
 			el.innerText = getLangData("confirm");
-			el.style.backgroundImage = '-webkit-linear-gradient(top,#08bc4c,#15492b)'; //「確認」ボタンを緑に
+			el.style.backgroundColor = '#096910';	//「確認」ボタンを緑に
 			el.onclick = function () {
 				var _this = this;
 
 				// console.log("確認ボタンが押された");
-
 
 				//ポップアップウィンドウ以外を暗くするためにウィンドウ全体を暗くする
 				var _element_overlay = appendOverlayElement();
@@ -377,14 +369,19 @@
 				btnOK.disabled = true;
 				btnOK.style.opacity = 0.5;
 				btnOK.onclick = function () {
+					//ポップアップ削除
 					_element_overlay.parentNode.removeChild(_element_overlay); //ポップアップ削除(オーバーレイごと削除）
-					// _this.nextSibling.style.display = "";							//「送信」表示
-					// _this.nextSibling.style.backgroundImage = '-webkit-linear-gradient(top,#F44,#E00)';		//「送信」ボタンを赤色に
-					d.forEach(function (elem) {
-						elem.style.display = ""; //「送信」表示
-						elem.style.backgroundImage = '-webkit-linear-gradient(top,#F44,#E00)'; //「送信」ボタンを赤色に
-						elem.style.color = "#FFF";
-					});
+					//「送信」系ボタン表示
+					var tmp_node = el;
+					while (tmp_node.nextElementSibling) {
+						tmp_node = tmp_node.nextElementSibling;
+						tmp_node.style.display = "";
+						tmp_node.childNodes.forEach(function (elem) {
+							elem.style.display = ""; //「送信」表示
+							elem.style.backgroundColor = '#e81a1a'; //「送信」ボタンを赤色に
+							elem.style.color = "#FFF";
+						});				
+					}
 					_this.parentNode.removeChild(_this); //「確認」削除
 				};
 
@@ -394,13 +391,17 @@
 
 			}
 
-			// 「送信」関連ボタンを非表示
-			d.forEach(function (elem) {
-				elem.style.display = "none";
-			});
-
 			// 「確認」ボタン追加
-			d[0].parentNode.insertBefore(el, dd);
+			pd.parentNode.insertBefore(el, pd);
+			// console.log(d[0].parentNode.parentNode);
+
+			// 「送信」系ボタン非表示
+			var tmp_node = el;
+			while (tmp_node.nextElementSibling) {
+				// console.log(tmp_node.nextElementSibling);
+				tmp_node = tmp_node.nextElementSibling;
+				tmp_node.style.display = "none";
+			}
 		}
 
 
