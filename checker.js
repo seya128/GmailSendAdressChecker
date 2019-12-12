@@ -1,59 +1,517 @@
-(function () {
-	//追加するエレメントのID
-	var ID_OVERLAY = 'SAC_overlay';		//オーバーレイエレメントID
-	var ID_POPUP = 'SAC_popup';			//ポップアップウィンドウID
-	var ID_CONFIRM = 'SAC_confirm';
-	var ID_OK = 'SAC_OK';
-	var ID_CANCEL = 'SAC_CANCEL';
+const GMailSendAddressChecker = {
 
+	VERSION : "version 0.20",
 
-	//言語ごとのデータ
-	var langSendText = "";		//送信ボタンのテキスト
-	var langData = {
-		"送信": {
+	// アトリビュート
+	CONFIRM_BUTTON_ATTR : "gmsac-confirm",
+	CONFIRM_BUTTON_BACKGROUND_COLOR : '#096910',
+
+	SEND_BUTTON_ATTR : "gmsac-send",
+	SEND_BUTTON_BACKGROUND_COLOR : '#e81a1a',
+	SEND_BUTTON_COLOR : "#FFF",
+
+	EDIT_NODE_ATTR : "gmsac-edit-node",
+	CHECK_WINDOW_ID : "gmsac-check-window",
+	CHECK_OK_BUTTON_ID : "gmsac-check-ok",
+
+	// 表示文字
+	display_text_tbl : {
+		"JP": {
 			"confirm": "確認",
 			"checkall": "すべてチェックしてください",
 			"subject": "件名",
 			"attached": "添付",
 			"noattach": "添付ファイルなし",
 		},
-		"Send": {
+		"EN": {
 			"confirm": "Confirm",
 			"checkall": "Please check all",
 			"subject": "Subject",
 			"attached": "Attached",
 			"noattach": "No attachment",
 		},
+	},
 
-	};
-	function getLangData(attr) {
-		var lng = langSendText;
-		if (!langData[lng])		//データがなければ英語
-			lng = "Send";
+
+	//-------------------------------------------------------
+	// 初期化(GMailページがロードされた際に呼び出す）
+	//-------------------------------------------------------
+	init() {
+		// 確認ID 初期化
+		this.confirm_id = 0;
+
+		// focusイベント追加
+		this.addFocusEventListener();
+
+		// Ctrl+Enter無効化
+		this.diasbleCtrlEnter();
+	},
+
+	// focusイベント追加
+	addFocusEventListener() {
+		document.addEventListener('focus', (event) => {
+			const target = event.target;
+			if (target.name == 'to' 
+			|| target.name == 'cc' 
+			|| target.name == 'bcc' 
+			|| target.name == 'subjectbox' 
+			|| target.getAttribute('role') == "textbox") {
+				
+				// すべてのメール作成フォームの「送信」関連ボタンを「確認」ボタンに変更
+				this.changeAllButtonSendToConfirm();
+
+			}
+		}, true);
+	},
+
+	// Ctrl+Enter無効化
+	diasbleCtrlEnter() {
+		document.addEventListener('keydown', (event) => {
+			if (event.key == 'Enter' && (event.ctrlKey || event.metaKey)) {
+				console.log("keydown ctrl+Enter");
+				console.log(event.target);
+				event.stopPropagation(); //イベントの伝搬を止める
+			}
+		}, true);
+	},
+
+	//-------------------------------------------------------
+	// すべてのメール作成フォームの「送信」関連ボタンを「確認」ボタンに変更
+	//-------------------------------------------------------
+	changeAllButtonSendToConfirm() {
+		// すべてのメール作成ノードを取得
+		const edit_nodes = this.findEditNodeAll();
+
+		for (const node of edit_nodes) {
+			//確認ID取得
+			let id = node.getAttribute(this.EDIT_NODE_ATTR);
+			if (!id) {
+				id = this.confirm_id;
+				this.confirm_id ++;
+			}
+			node.setAttribute(this.EDIT_NODE_ATTR, id);
+			
+			//すでに確認ボタンがあれば処理しない
+			if (!this.findConfirmButton(node)) {
+
+				// 送信ボタンを探す
+				const send_button = this.findSendButton(node);
+				if (send_button) {
+					// 送信ボタンのテキストから言語コード取得
+					this.lang = this.judgeLanguage(send_button.innerText);
+
+					// 確認ボタンを追加する
+					this.insertConfirmButton(send_button, id);
+
+					// 送信ボタンを非表示にする
+					this.hideSendButton(send_button, id);
+
+				}
+			}
+		}
+	},
+
+	// すべてのメール作成ノードを取得
+	findEditNodeAll() {
+		// formを取得
+		const form_nodes = document.querySelectorAll('td form[method=POST]');
+
+		// 見つけたformノードの親階層の下に、メール作成に必要な機能がある
+		const edit_nodes = [];
+		for (const node of form_nodes) {
+			edit_nodes.push(node.parentNode);
+		}
+
+		return edit_nodes;
+	},
+
+	// 確認ボタンがすでにないか探す
+	findConfirmButton(node) {
+		const query = 'div[' + this.CONFIRM_BUTTON_ATTR + ']';
+		return node.querySelector(query);
+	},
+
+	// 送信ボタンを探す
+	findSendButton(node) {
+		//送信ボタン検索
+		// 言語によって(Ctrl + Enter)だったり(Ctrl-Enter)だったりするので
+		// Enterが含まれているものを探す
+		const d = node.querySelector('div[aria-label*="Enter)"]');
+		return d;
+	},
+
+	// 送信ボタンを非表示にする
+	hideSendButton(send_button, id) {
+		//親要素を非表示にする
+		const parent_send_button = send_button.parentNode;
+		parent_send_button.style.display = "none";
+		parent_send_button.setAttribute(this.SEND_BUTTON_ATTR,id);
 		
-		if (langData[lng][attr])
-			return langData[lng][attr];
+		//送信＆アーカイブ設定になっている場合は、親の兄弟要素も送信ボタンなので、非表示
+		const next_element = parent_send_button.nextElementSibling;
+		if (next_element) {
+			next_element.style.display = "none";
+			next_element.setAttribute(this.SEND_BUTTON_ATTR,id);
+		}
+	},
+
+	// 送信ボタン表示&色を変える
+	displaySendButton(id) {
+		const send_buttons = document.querySelectorAll(`div[${this.SEND_BUTTON_ATTR}="${id}"]`);
+		if (!send_buttons || send_buttons.length==0) {
+			alert('送信ボタンを再表示出来ませんでした。\nGMailSendAddressChecker拡張を無効にしてみてください。');
+		} else {
+			send_buttons.forEach((element) => {
+				element.style.display = "";
+				element.childNodes.forEach((e) => {
+					e.style.backgroundColor = this.SEND_BUTTON_BACKGROUND_COLOR;
+					e.style.color = this.SEND_BUTTON_COLOR;
+				});
+			});
+		}
+	},
+
+	// 確認ボタンを追加する
+	insertConfirmButton(send_button, id) {
+		const confirm_button = this.createConfirmButton(send_button, id);
+
+		//送信ボタンの親要素のさらに親要素に挿入
+		const parent_send = send_button.parentNode;
+		parent_send.parentNode.append(confirm_button);
+	},
+
+	// 確認ボタン削除
+	removeConfirmButton(id) {
+		const element = document.querySelector(`div[${this.CONFIRM_BUTTON_ATTR}="${id}"]`);
+		if (element) {
+			element.parentNode.removeChild(element); 
+		}
+	},
+
+
+
+	//-------------------------------------------------------
+	// 多言語対応
+	//-------------------------------------------------------
+	  
+	//言語を判断する
+	//  送信ボタンのテキストを判定し、言語コードを返します。
+	//	テキストの最初の２文字が"送信"の場合、JP
+	//  それ以外は、EN
+	judgeLanguage(send_text) {
+		if (send_text.match(/送信/))
+			return 'JP';
 		else
-			return langData["Send"][attr];
-	}
+			return 'EN';
+	},
+
+	//表示文字取得
+	getDisplayText(type) {
+		if (!this.lang)
+			this.lang = 'EN';
+		if (!this.display_text_tbl[this.lang])
+			this,lang = 'EN';
+		
+		return this.display_text_tbl[this.lang][type];
+	},
 
 
 
-	//
-	// ******* 確認用ポップアップウィンドウ関連 *******
-	//
+	//-------------------------------------------------------
+	// 確認ボタンの生成
+	//-------------------------------------------------------
+	createConfirmButton(send_button, id) {
+		
+		// 送信ボタンのクローンから作成
+		let confirm_button = send_button.cloneNode();
 
-	//
-	// チェックボックスを追加
-	//
-	function addCheckbox(html) {
-		return '<input type="checkbox"> ' + html + '</input>';
-	}
+		confirm_button.setAttribute(this.CONFIRM_BUTTON_ATTR,id);
+		confirm_button.removeAttribute('id');
+		confirm_button.setAttribute("aria-label", this.getDisplayText("confirm"));
+		confirm_button.setAttribute("data-tooltip", this.getDisplayText("confirm"));
+		confirm_button.innerText = this.getDisplayText("confirm");
+		confirm_button.style.backgroundColor = this.CONFIRM_BUTTON_BACKGROUND_COLOR;
 
-	//
+		confirm_button.onclick = (event) => {
+			console.log(`No.${id} の確認ボタンが押されました`);
+			// チェック用モーダルウィンドウ
+			const check_modal_window = this.createCheckModalWindow(id);
+			document.body.appendChild(check_modal_window);
+		};
+
+		return confirm_button;
+	},
+
+
+
+
+	//-------------------------------------------------------
+	// チェック用モーダルウィンドウの生成
+	//-------------------------------------------------------
+	createCheckModalWindow(id) {
+
+		const window_element = this.createModalWindowsOuter();
+		window_element.innerHTML = this.createWindowHtml(id);
+		window_element.appendChild(this.crateCheckOkCancelButton(id));		// OK,CANCELボタン
+		
+		const element = this.createModalBack();
+		element.appendChild(window_element);
+		element.id = this.CHECK_WINDOW_ID;
+
+		//チェックボックスのイベント
+		let btnOK = element.querySelector(`#${this.CHECK_OK_BUTTON_ID}`);
+		const chbx = element.querySelectorAll('input[type=checkbox]');
+		let chbxLen = chbx.length;
+		for (let i = 0; i < chbxLen; i++) {
+			chbx[i].onclick = function () {
+				if (this.checked) {
+					chbxLen--;
+				} else {
+					chbxLen++;
+				}
+				if (chbxLen <= 0) {
+					btnOK.style.backgroundImage = '-webkit-linear-gradient(top,#f44,#ecc)';
+					btnOK.disabled = false;
+					btnOK.style.opacity = 1.0;
+				} else {
+					btnOK.style.backgroundImage = '';
+					btnOK.disabled = true;
+					btnOK.style.opacity = 0.5;
+				}
+			}
+		}
+		btnOK.style.backgroundImage = '';
+		btnOK.disabled = true;
+		btnOK.style.opacity = 0.5;
+
+		return element;
+	},
+
+	//チェック用モーダルウィンドウ削除
+	removeCheckModalWindow() {
+		const element = document.getElementById(this.CHECK_WINDOW_ID);
+		if (element) {
+			element.parentNode.removeChild(element); 
+		}
+	},
+
+
+	//モーダルウィンドウ外の全面背景
+	createModalBack() {
+		let element = document.createElement("div");
+		const style = {
+			position : "fixed",
+			width : "100%",
+			height : "100%",
+			top : "0",
+			left : "0",
+			backgroundColor : "rgba(0,0,0, 0.25)",
+			zIndex : "998",
+		};
+		Object.assign(element.style, style);
+
+		return element;
+	},
+
+	//ウィンドウ外形
+	createModalWindowsOuter() {
+		let _right = 10;
+		let _buttom = 0;
+
+		let element = document.createElement("div");
+		const style = {
+			position : "absolute",
+			width : "700px",
+			// height : "100px",
+			right : `${_right}px`,
+			bottom : `${_buttom}px`,
+			backgroundColor : "#fee",
+			border : "5px #866 solid",
+			borderRadius : "10px",
+			boxShadow : "5px 5px 10px #444",
+			fontSize : "90%",
+		};
+		Object.assign(element.style, style);
+
+		// ドラッグ設定
+		let dragOldX;
+		let dragOldY;
+		element.draggable = 'true';
+		element.addEventListener(
+			'dragstart',
+			function (e) {
+				// console.log("dragstart: (" + e.x + "," + e.y + ")" );
+				dragOldX = e.x;
+				dragOldY = e.y;
+			},
+			false
+		);
+		element.addEventListener(
+			'drag',
+			function (e) {
+				// console.log("drag: (" + e.x + "," + e.y + ")");
+				if (e.x != 0 && e.y != 0) {
+					_right -= e.x - dragOldX;
+					_buttom -= e.y - dragOldY;
+					this.style.right = _right + "px";
+					this.style.bottom = _buttom + "px";
+					dragOldX = e.x;
+					dragOldY = e.y;
+				}
+			},
+			false
+		);
+
+		return element;
+
+	},
+
+
+	// ウィンドウ内HTML
+	createWindowHtml(id) {
+		let edit_node = document.querySelector(`*[${this.EDIT_NODE_ATTR}="${id}"]`);
+		const from = this.getFrom(edit_node);
+		const whiteDomain = this.getDomain(from);
+		//ヘッダー
+		let html = 
+		'<div style="font-weight:bold; background:#866; color:#fff; padding:5px 20px; cursor:move">' +
+		this.getDisplayText("checkall") +
+		'<div style="float:right">' + this.VERSION + '  ' + '<a href="http://www.dorasu.com">(C) DORASU</a></div>' +
+		'</div>';
+		
+		//チェック領域
+		html += 
+		'<div style="margin:10px">' +
+		'<table borde="10" style="border:10; width:100%; cellspacing:10; cellpadding:10">' +
+		'<tr><td width="15%">From</td>' +
+		'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
+		this.createCheckbox(from) +
+		'</td>' +
+		'</tr>' +
+		'<tr><td width="15%">To</td>' +
+		'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
+		this.makeAddressList(edit_node.querySelectorAll('input[name=to]'), whiteDomain) +
+		'</td>' +
+		'</tr>' +
+		'<tr><td>Cc</td>' +
+		'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
+		this.makeAddressList(edit_node.querySelectorAll('input[name=cc]'), whiteDomain) +
+		'</td>' +
+		'</tr>' +
+		'<tr><td>Bcc</td>' +
+		'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
+		this.makeAddressList(edit_node.querySelectorAll('input[name=bcc]'), whiteDomain) +
+		'</td>' +
+		'</tr>' +
+		'<tr><td>' + this.getDisplayText("subject") + '</td>' +
+		'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
+		this.makeAddressList(edit_node.querySelectorAll('input[name=subject]'), "") +
+		'</td>' +
+		'</tr>' +
+		'<tr><td>' + this.getDisplayText("attached") + '</td>' +
+		'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
+		this.getAttachedFiles(edit_node) +
+		'</td>' +
+		'</tr>' +
+		'</table>' +
+		'</div>';
+
+		return html;		
+	},
+
+
+	// OK,CANCELボタン
+	crateCheckOkCancelButton(id) {
+		const button_style = {
+			width:	"40%",
+			height:	"40px",
+			fontWeight: "bold",
+			color:	"#444",
+			borderRadius : "10px",
+		};
+		
+		let ok = document.createElement("input");
+		ok.id = this.CHECK_OK_BUTTON_ID;
+		ok.type="button";
+		ok.value="O K";
+		Object.assign(ok.style ,button_style);
+		ok.onclick = () => {
+			this.removeCheckModalWindow();
+			this.displaySendButton(id);	  // 送信ボタン表示
+			this.removeConfirmButton(id); // 確認ボタン削除
+		}
+
+		let cancel = document.createElement("input");
+		cancel.type="button";
+		cancel.value="CANCEL";
+		Object.assign(cancel.style, button_style);
+		cancel.onclick = () => {
+			this.removeCheckModalWindow();
+		}
+
+		let element = document.createElement("div");
+		element.style.margin =	"10px";
+		element.style.textAlign = "center";
+		element.style.display = "flex";
+		element.style.justifyContent = "space-around";
+		element.appendChild(ok);
+		element.appendChild(cancel);
+
+		return element;
+	},
+
+	// チェックボックス作成
+	createCheckbox(html) {
+		return `<input type="checkbox">${html}</input>`;
+	},
+
+	// from取得
+	getFrom(edit_node) {
+		let from = edit_node.querySelectorAll('input[name=from]')[0].value;
+		if (from == "") {
+			//アカウントが１つしか設定されていないとfromに値がはいらないので、タイトルを使う。これでいいのかは怪しい
+			console.log(document.title);
+			from = document.title.match(/- ([a-zA-z0-9\.-]+@[a-zA-z0-9\.-]+) -/);
+			if (from != null)
+				from = from[1];
+		}
+		return from;
+	},
+
+	// ドメインのみ抽出
+	getDomain(address) {
+		const domain = address.match(/[a-zA-z0-9\.-]+@([a-zA-z0-9\.-]+)/)
+
+		if (domain == null)
+			return "";
+
+		return domain[1];
+	},
+
+	//アドレスリスト作成
+	makeAddressList(addresses, whiteDomain) {
+		let list = "";
+
+		for (let i = 0, addressCount = addresses.length; i < addressCount; i++) {
+			var addressValue = addresses[i].value;
+			if (addressValue) {
+				let text = addressValue.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+				if (whiteDomain != "") {
+					if (this.getDomain(addressValue) == whiteDomain)
+						text = '<font color="#00f">' + text + '</font>';
+					else
+						text = '<font color="#f00">' + text + '</font>';
+				}
+
+				list = list + this.createCheckbox(text) + '<br/>';
+			}
+		}
+
+		return list;
+	},
+
 	// 添付ファイル名取得
-	//
-	function getAttachedFiles(node) {
+	getAttachedFiles(edit_node) {
 		//<div class="dL" tabindex="-1" id=":eu" aria-label="添付ファイル GMailSendAdressCheckerSS.png。添付ファイルを表示するには Enter キーを、削除するには Delete キーを押してください">
 		// <input id=":em" name="attach" type="hidden" value="14d415a088af6894_14d415a088af6894_0.2_-1" checked="">
 		// <a class="dO" id=":en" href="?ui=2&amp;ik=0187644934&amp;view=att&amp;th=14d415a088af6894&amp;attid=0.2&amp;disp=safe&amp;realattid=f_i9jfa7u21&amp;zw" target="_blank">
@@ -64,401 +522,33 @@
 		//</div>
 		// こんな感じなので、<input name="attach">直後の<a>タグの直下の２つのDIVからファイル名とサイズを取得
 
-		var attachedFiles = "";
+		let attachedFiles = "";
 
-		var el = node.querySelectorAll('input[name=attach]+a');
+		const el = edit_node.querySelectorAll('input[name=attach]+a');
 
-		var el_len = el.length;
+		const el_len = el.length;
 		if (el_len > 0) {
-			for (var i = 0; i < el.length; i++) {
+			for (let i = 0; i < el.length; i++) {
 
-				var el_div = el[i].querySelectorAll('div');
+				const el_div = el[i].querySelectorAll('div');
 
-				attachedFiles = attachedFiles + addCheckbox(el_div[0].innerText + el_div[1].innerText) + '<br/>';
+				attachedFiles = attachedFiles + this.createCheckbox(el_div[0].innerText + el_div[1].innerText) + '<br/>';
 			}
 		} else {
-			attachedFiles = addCheckbox(" - " + getLangData("noattach") + " - ");
+			attachedFiles = this.createCheckbox(" - " + this.getDisplayText("noattach") + " - ");
 		}
 
 		return attachedFiles;
-	}
+	},
 
-	//
-	// ドメインのみ抽出
-	//
-	function getDomain(addressValue) {
-		var domain;
 
-		domain = addressValue.match(/[a-zA-z0-9\.-]+@([a-zA-z0-9\.-]+)/)
 
-		if (domain == null)
-			return "";
 
-		return domain[1];
-	}
+};
 
-	//アドレスリスト作成
-	function makeAddressList(addresses, whiteDomain) {
-		var list = "";
 
-		for (var i = 0, addressCount = addresses.length; i < addressCount; i++) {
-			var addressValue = addresses[i].value;
-			if (addressValue) {
-				var text = addressValue.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-				if (whiteDomain != "") {
-					if (getDomain(addressValue) == whiteDomain)
-						text = '<font color="#00f">' + text + '</font>';
-					else
-						text = '<font color="#f00">' + text + '</font>';
-				}
 
-				list = list + addCheckbox(text) + '<br/>';
-			}
-		}
 
-		return list;
-	}
-
-
-	// オーバーレイ用エレメント作成
-	//   ポップアップウィンドウ以外を暗くするためにウィンドウ全体に載せるエレメント
-	function createOverlayElement() {
-		var _element_overlay = document.createElement("div");
-
-		_element_overlay.id = ID_OVERLAY;
-
-		// スタイルを設定する
-		var style = _element_overlay.style;
-		style.position = "fixed";
-		style.width = "100%";
-		style.height = "100%";
-		style.top = "0";
-		style.left = "0";
-		style.backgroundColor = "rgba(0,0,0, 0.15)";
-		style.zIndex = "998";
-
-		return _element_overlay;
-	}
-
-	// オーバーレイ用エレメント追加
-	function appendOverlayElement() {
-		var _element_overlay = document.getElementById(ID_OVERLAY);
-		if (!_element_overlay) {	//すでにエレメントが存在している場合は作成しない
-			_element_overlay = createOverlayElement();
-			// BODY のノードリストに登録する
-			document.body.appendChild(_element_overlay);
-		}
-		return _element_overlay;
-	}
-
-
-
-	// ポップアップ用エレメントを作成
-	function createPopupElement(_editFormNode) {
-		var	_element_popup = document.createElement("div");
-		_element_popup.id = ID_POPUP;
-
-		// スタイルを設定する
-		var _right = 10;
-		var _buttom = 0;
-		var style = _element_popup.style;
-		style.position = "absolute";
-		style.width = "700px";
-		style.backgroundColor = "#fee";
-		style.border = "5px #866 solid";
-		style.borderRadius = "10px";
-		style.boxShadow = "5px 5px 10px #444";
-		style.right = _right + "px";
-		style.bottom = _buttom + "px";
-		//style.zIndex = "999";
-		style.fontSize = "90%";
-
-		// ドラッグ設定
-		var dragOldX;
-		var dragOldY;
-		_element_popup.draggable = 'true';
-		_element_popup.addEventListener(
-			'dragstart',
-			function (e) {
-				//console.log("dragstart: (" + e.x + "," + e.y + ")" );
-				dragOldX = e.x;
-				dragOldY = e.y;
-			},
-			false
-		);
-		_element_popup.addEventListener(
-			'drag',
-			function (e) {
-				//console.log("drag: (" + e.x + "," + e.y + ")");
-				if (e.x != 0 && e.y != 0) {
-					_right -= e.x - dragOldX;
-					_buttom -= e.y - dragOldY;
-					style.right = _right + "px";
-					style.bottom = _buttom + "px";
-					dragOldX = e.x;
-					dragOldY = e.y;
-				}
-			},
-			false
-		);
-
-		// fromのドメイン取得
-		var from = _editFormNode.querySelectorAll('input[name=from]')[0].value;
-		if (from == "") {
-			//アカウントが１つしか設定されていないとfromに値がはいらないので、タイトルを使う。これでいいのかは怪しい
-			console.log(document.title);
-			from = document.title.match(/- ([a-zA-z0-9\.-]+@[a-zA-z0-9\.-]+) -/);
-			if (from != null)
-				from = from[1];
-		}
-		var whiteDomain = getDomain(from);
-		//チェックボックスを追加
-		from = addCheckbox(from);
-
-		// ポップアップウィンドウHTML
-		_element_popup.innerHTML = '' +
-			'<div style="font-weight:bold; background:#866; color:#fff; padding:5px 20px; cursor:move">' +
-			getLangData("checkall") +
-			'<div style="float:right"><a href="http://www.dorasu.com">(C) DORASU</a></div>' +
-			'</div>' +
-			'<div style="margin:10px">' +
-			'<table borde="10" style="border:10; width:100%; cellspacing:10; cellpadding:10">' +
-			'<tr><td width="15%">From</td>' +
-			'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-			from +
-			'</td>' +
-			'</tr>' +
-			'<tr><td width="15%">To</td>' +
-			'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-			makeAddressList(_editFormNode.querySelectorAll('input[name=to]'), whiteDomain) +
-			'</td>' +
-			'</tr>' +
-			'<tr><td>Cc</td>' +
-			'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-			makeAddressList(_editFormNode.querySelectorAll('input[name=cc]'), whiteDomain) +
-			'</td>' +
-			'</tr>' +
-			'<tr><td>Bcc</td>' +
-			'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-			makeAddressList(_editFormNode.querySelectorAll('input[name=bcc]'), whiteDomain) +
-			'</td>' +
-			'</tr>' +
-			'<tr><td>' + getLangData("subject") + '</td>' +
-			'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-			makeAddressList(_editFormNode.querySelectorAll('input[name=subject]'), "") +
-			'</td>' +
-			'</tr>' +
-			'<tr><td>' + getLangData("attached") + '</td>' +
-			'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-			getAttachedFiles(_editFormNode) +
-			'</td>' +
-			'</tr>' +
-			'</table>' +
-			'</div>' +
-
-			'<div style="margin:10px; text-align:center; color">' +
-			'<input type="button" id="' + ID_OK + '" style="width:40%; height:40px; font-weight:bold; color:#444" value="O K">　' +
-			'<input type="button" id="' + ID_CANCEL + '" style="width:40%; height:40px; font-weight:bold; color:#444" value="CANCEL">' +
-			'</div>';
-
-
-		return _element_popup;
-	}
-
-	// ポップアップ用エレメント追加
-	function appendPopupElement(_parentNode, _editFormNode) {
-		var _element_popup = document.getElementById(ID_POPUP);
-		if (!_element_popup) {	//すでにエレメントが存在している場合は作成しない
-			_element_popup = createPopupElement(_editFormNode);
-			// ノードリストに登録する
-			_parentNode.appendChild(_element_popup);
-
-			//チェックボックスのイベント
-			var btnOK = document.getElementById(ID_OK);
-			var chbx = _element_popup.querySelectorAll('input[type=checkbox]');
-			var chbxLen = chbx.length;
-			for (var i = 0; i < chbxLen; i++) {
-				chbx[i].onclick = function () {
-					if (this.checked) {
-						chbxLen--;
-					} else {
-						chbxLen++;
-					}
-					if (chbxLen <= 0) {
-						btnOK.style.backgroundImage = '-webkit-linear-gradient(top,#f44,#ecc)';
-						btnOK.disabled = false;
-						btnOK.style.opacity = 1.0;
-					} else {
-						btnOK.style.backgroundImage = '';
-						btnOK.disabled = true;
-						btnOK.style.opacity = 0.5;
-					}
-				}
-			}
-		}
-
-		return _element_popup;
-	}
-
-
-
-
-
-	
-	//
-	// ******* ボタン検索関連 *******
-	//
-
-
-	// 送信ボタンを探す
-	function getSendButton(node) {
-		//送信ボタン検索
-		// 言語によって(Ctrl + Enter)だったり(Ctrl-Enter)だったり・・・
-		var d = node.querySelectorAll('div[aria-label*="Enter)"]');
-		if (!d || d.length<=0) return null;
-
-		//ここの文字の先頭２文字で言語を判断
-		var text = d[0].innerText.substr(0,2);
-		langSendText = text;
-		// console.log(text);
-
-		return d;
-	}
-
-
-	//確認ボタン追加
-	function appendKakuninButton(node) {
-		//まず「送信」ボタンを探す
-		var d = getSendButton(node);
-		// console.log(d);
-		if (!d) {
-			// console.log("送信ボタンが見つかりませんでした。");
-			return;
-		}
-		var dd = d[0];
-
-		//「送信」ボタンの前に「確認」ボタンを追加し、「送信」を非表示
-		if (dd != "") {
-			// 送信ボタン一連をOFFするための親ノード
-			var pd = dd.parentNode;
-
-			// 送信ボタンのコピーを作成し、確認ボタンにする
-			dd.style.backgroundImage = ''; //「送信」ボタンを赤色にしたのを取消
-			var el = dd.cloneNode();
-			el.id = ID_CONFIRM;
-			el.setAttribute("aria-label", getLangData("confirm"));
-			el.setAttribute("data-tooltip", getLangData("confirm"));
-			el.innerText = getLangData("confirm");
-			el.style.backgroundColor = '#096910';	//「確認」ボタンを緑に
-			el.onclick = function () {
-				var _this = this;
-
-				// console.log("確認ボタンが押された");
-
-				//ポップアップウィンドウ以外を暗くするためにウィンドウ全体を暗くする
-				var _element_overlay = appendOverlayElement();
-
-				// ポップアップ用エレメントを作成
-				var _element_popup = appendPopupElement(_element_overlay, node);
-
-
-				// ------------------------------------------------------------
-				// クリック時に実行されるイベント
-				// ------------------------------------------------------------
-				var btnOK = document.getElementById(ID_OK);
-				btnOK.disabled = true;
-				btnOK.style.opacity = 0.5;
-				btnOK.onclick = function () {
-					//ポップアップ削除
-					_element_overlay.parentNode.removeChild(_element_overlay); //ポップアップ削除(オーバーレイごと削除）
-					//「送信」系ボタン表示
-					var tmp_node = el;
-					while (tmp_node.nextElementSibling) {
-						tmp_node = tmp_node.nextElementSibling;
-						tmp_node.style.display = "";
-						tmp_node.childNodes.forEach(function (elem) {
-							elem.style.display = ""; //「送信」表示
-							elem.style.backgroundColor = '#e81a1a'; //「送信」ボタンを赤色に
-							elem.style.color = "#FFF";
-						});				
-					}
-					_this.parentNode.removeChild(_this); //「確認」削除
-				};
-
-				document.getElementById(ID_CANCEL).onclick = function () {
-					_element_overlay.parentNode.removeChild(_element_overlay); //ポップアップ削除(オーバーレイごと削除）
-				};
-
-			}
-
-			// 「確認」ボタン追加
-			pd.parentNode.insertBefore(el, pd);
-			// console.log(d[0].parentNode.parentNode);
-
-			// 「送信」系ボタン非表示
-			var tmp_node = el;
-			while (tmp_node.nextElementSibling) {
-				// console.log(tmp_node.nextElementSibling);
-				tmp_node = tmp_node.nextElementSibling;
-				tmp_node.style.display = "none";
-			}
-		}
-
-
-
-
-	}
-
-
-
-
-
-	//
-	// メール作成フォームエリアのノードを取得
-	//  複数のメール作成がある場合もある
-	function getMailEditFormNode() {
-
-		var node_form = document.querySelectorAll('td form[method=POST]');
-
-		var node_div = [];
-		for (var i = 0, len = node_form.length; i < len; i++) {
-			node_div[i] = node_form[i].parentNode;
-		}
-
-		return node_div;
-	}
-
-
-	//----------------------------
-	//起動時にイベントセット
-	//----------------------------
-	window.setTimeout(function () {
-
-		//to,cc,subjectなどを変更しようとしたときに、「送信」ボタンを書き換える
-
-		document.addEventListener('focus', function (event) {
-			var target = event.target;
-			if (target.name !== 'to' && target.name !== 'cc' && target.name !== 'bcc' && target.name != 'subjectbox' && target.getAttribute('role') != "textbox") return;
-
-			var editFormNode = getMailEditFormNode();
-
-			for (var i = 0; i < editFormNode.length; i++) {
-				//確認ボタンを追加していない箇所に、確認ボタンを追加
-				if (editFormNode[i].querySelectorAll('div#'+ID_CONFIRM).length == 0) {
-					appendKakuninButton(editFormNode[i]);
-				}
-			}
-		}, true); // event listener focus
-
-		// ctrl+Enterをきかなくする
-
-		document.addEventListener('keydown', function (event) {
-			if (event.key == 'Enter' && (event.ctrlKey || event.metaKey)) {
-				console.log("keydown ctrl+Enter");
-				event.stopPropagation(); //イベントの伝搬を止める
-			}
-		}, true);
-
-	}, 100); // setTimeout
-
-})();
+// 起動
+console.log("GMail SendAddress Checker init");
+GMailSendAddressChecker.init();
