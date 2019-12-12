@@ -322,7 +322,7 @@ const GMailSendAddressChecker = {
 		const style = {
 			position : "absolute",
 			width : "700px",
-			// height : "100px",
+			maxHeight : "100%",
 			right : `${_right}px`,
 			bottom : `${_buttom}px`,
 			backgroundColor : "#fee",
@@ -330,6 +330,8 @@ const GMailSendAddressChecker = {
 			borderRadius : "10px",
 			boxShadow : "5px 5px 10px #444",
 			fontSize : "90%",
+			display: "flex",
+			flexDirection: "column",
 		};
 		Object.assign(element.style, style);
 
@@ -374,14 +376,16 @@ const GMailSendAddressChecker = {
 		const whiteDomain = this.getDomain(from);
 		//ヘッダー
 		let html = 
+		'<div>' +
 		'<div style="font-weight:bold; background:#866; color:#fff; padding:5px 20px; cursor:move">' +
 		this.getDisplayText("checkall") +
 		'<div style="float:right">' + this.VERSION + '  ' + '<a href="http://www.dorasu.com">(C) DORASU</a></div>' +
+		'</div>' +
 		'</div>';
 		
 		//チェック領域
 		html += 
-		'<div style="margin:10px">' +
+		'<div style="padding:10px; flex-grow: 1; overflow: auto;">' +
 		'<table borde="10" style="border:10; width:100%; cellspacing:10; cellpadding:10">' +
 		'<tr><td width="15%">From</td>' +
 		'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
