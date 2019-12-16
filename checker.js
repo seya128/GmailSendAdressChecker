@@ -1,18 +1,26 @@
 const GMailSendAddressChecker = {
 
-	VERSION : "version 0.20",
+	VERSION : "version 0.21",
 
 	// アトリビュート
 	CONFIRM_BUTTON_ATTR : "gmsac-confirm",
-	CONFIRM_BUTTON_BACKGROUND_COLOR : '#096910',
+	CONFIRM_BUTTON_STYLE : {
+		backgroundColor: 	'#096910',
+		minWidth: 			'80px',
+		borderRadius: 		'4px'
+	},
 
 	SEND_BUTTON_ATTR : "gmsac-send",
-	SEND_BUTTON_BACKGROUND_COLOR : '#e81a1a',
-	SEND_BUTTON_COLOR : "#FFF",
+	SEND_BUTTON_STYLE : {
+		backgroundColor:	'#e81a1a',
+		color:				'#ffffff',
+	},
 
 	EDIT_NODE_ATTR : "gmsac-edit-node",
 	CHECK_WINDOW_ID : "gmsac-check-window",
 	CHECK_OK_BUTTON_ID : "gmsac-check-ok",
+	CHECK_BOX_ID : "gmsac-checkbox-",
+
 
 	// 表示文字
 	display_text_tbl : {
@@ -164,8 +172,9 @@ const GMailSendAddressChecker = {
 			send_buttons.forEach((element) => {
 				element.style.display = "";
 				element.childNodes.forEach((e) => {
-					e.style.backgroundColor = this.SEND_BUTTON_BACKGROUND_COLOR;
-					e.style.color = this.SEND_BUTTON_COLOR;
+					Object.assign(e.style, this.SEND_BUTTON_STYLE);
+					// e.style.backgroundColor = this.SEND_BUTTON_BACKGROUND_COLOR;
+					// e.style.color = this.SEND_BUTTON_COLOR;
 				});
 			});
 		}
@@ -230,7 +239,7 @@ const GMailSendAddressChecker = {
 		confirm_button.setAttribute("aria-label", this.getDisplayText("confirm"));
 		confirm_button.setAttribute("data-tooltip", this.getDisplayText("confirm"));
 		confirm_button.innerText = this.getDisplayText("confirm");
-		confirm_button.style.backgroundColor = this.CONFIRM_BUTTON_BACKGROUND_COLOR;
+		Object.assign(confirm_button.style, this.CONFIRM_BUTTON_STYLE);
 
 		confirm_button.onclick = (event) => {
 			console.log(`No.${id} の確認ボタンが押されました`);
@@ -299,73 +308,14 @@ const GMailSendAddressChecker = {
 	//モーダルウィンドウ外の全面背景
 	createModalBack() {
 		let element = document.createElement("div");
-		const style = {
-			position : "fixed",
-			width : "100%",
-			height : "100%",
-			top : "0",
-			left : "0",
-			backgroundColor : "rgba(0,0,0, 0.25)",
-			zIndex : "998",
-		};
-		Object.assign(element.style, style);
-
 		return element;
 	},
 
 	//ウィンドウ外形
 	createModalWindowsOuter() {
-		let _right = 10;
-		let _buttom = 0;
-
 		let element = document.createElement("div");
-		const style = {
-			position : "absolute",
-			width : "700px",
-			maxHeight : "100%",
-			right : `${_right}px`,
-			bottom : `${_buttom}px`,
-			backgroundColor : "#fee",
-			border : "5px #866 solid",
-			borderRadius : "10px",
-			boxShadow : "5px 5px 10px #444",
-			fontSize : "90%",
-			display: "flex",
-			flexDirection: "column",
-		};
-		Object.assign(element.style, style);
-
-		// ドラッグ設定
-		let dragOldX;
-		let dragOldY;
-		element.draggable = 'true';
-		element.addEventListener(
-			'dragstart',
-			function (e) {
-				// console.log("dragstart: (" + e.x + "," + e.y + ")" );
-				dragOldX = e.x;
-				dragOldY = e.y;
-			},
-			false
-		);
-		element.addEventListener(
-			'drag',
-			function (e) {
-				// console.log("drag: (" + e.x + "," + e.y + ")");
-				if (e.x != 0 && e.y != 0) {
-					_right -= e.x - dragOldX;
-					_buttom -= e.y - dragOldY;
-					this.style.right = _right + "px";
-					this.style.bottom = _buttom + "px";
-					dragOldX = e.x;
-					dragOldY = e.y;
-				}
-			},
-			false
-		);
-
+		element.className = "window_outer";
 		return element;
-
 	},
 
 
@@ -376,47 +326,22 @@ const GMailSendAddressChecker = {
 		const whiteDomain = this.getDomain(from);
 		//ヘッダー
 		let html = 
-		'<div>' +
-		'<div style="font-weight:bold; background:#866; color:#fff; padding:5px 20px; cursor:move">' +
-		this.getDisplayText("checkall") +
-		'<div style="float:right">' + this.VERSION + '  ' + '<a href="http://www.dorasu.com">(C) DORASU</a></div>' +
-		'</div>' +
+		'<div class="gmsac-header">' +
+		'<div class="gmsac-title">' + this.getDisplayText("checkall") + '</div>' +
+		'<div class="gmsac-version">' + this.VERSION + '</div>' +
+		'<a href="http://www.dorasu.com">(C) DORASU</a>' +
 		'</div>';
 		
 		//チェック領域
 		html += 
-		'<div style="padding:10px; flex-grow: 1; overflow: auto;">' +
-		'<table borde="10" style="border:10; width:100%; cellspacing:10; cellpadding:10">' +
-		'<tr><td width="15%">From</td>' +
-		'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-		this.createCheckbox(from) +
-		'</td>' +
-		'</tr>' +
-		'<tr><td width="15%">To</td>' +
-		'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-		this.makeAddressList(edit_node.querySelectorAll('input[name=to]'), whiteDomain) +
-		'</td>' +
-		'</tr>' +
-		'<tr><td>Cc</td>' +
-		'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-		this.makeAddressList(edit_node.querySelectorAll('input[name=cc]'), whiteDomain) +
-		'</td>' +
-		'</tr>' +
-		'<tr><td>Bcc</td>' +
-		'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-		this.makeAddressList(edit_node.querySelectorAll('input[name=bcc]'), whiteDomain) +
-		'</td>' +
-		'</tr>' +
-		'<tr><td>' + this.getDisplayText("subject") + '</td>' +
-		'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-		this.makeAddressList(edit_node.querySelectorAll('input[name=subject]'), "") +
-		'</td>' +
-		'</tr>' +
-		'<tr><td>' + this.getDisplayText("attached") + '</td>' +
-		'<td style="margin:10px; padding:5px; background:#fff; border:1px solid #888;">' +
-		this.getAttachedFiles(edit_node) +
-		'</td>' +
-		'</tr>' +
+		'<div class="gmsac-check-area">' +
+		'<table>' +
+		'<tr><td>From</td><td>' + this.createCheckbox(from) + '</td></tr>' +
+		'<tr><td>To</td><td>' + this.makeAddressList(edit_node.querySelectorAll('input[name=to]'), whiteDomain) + '</td></tr>' +
+		'<tr><td>Cc</td><td>' +	this.makeAddressList(edit_node.querySelectorAll('input[name=cc]'), whiteDomain) + '</td></tr>' +
+		'<tr><td>Bcc</td><td>' + this.makeAddressList(edit_node.querySelectorAll('input[name=bcc]'), whiteDomain) + '</td></tr>' +
+		'<tr><td>' + this.getDisplayText("subject") + '</td><td>' +	this.makeAddressList(edit_node.querySelectorAll('input[name=subject]'), "") + '</td></tr>' +
+		'<tr><td>' + this.getDisplayText("attached") + '</td><td>' + this.getAttachedFiles(edit_node) + '</td></tr>' +
 		'</table>' +
 		'</div>';
 
@@ -426,19 +351,10 @@ const GMailSendAddressChecker = {
 
 	// OK,CANCELボタン
 	crateCheckOkCancelButton(id) {
-		const button_style = {
-			width:	"40%",
-			height:	"40px",
-			fontWeight: "bold",
-			color:	"#444",
-			borderRadius : "10px",
-		};
-		
 		let ok = document.createElement("input");
 		ok.id = this.CHECK_OK_BUTTON_ID;
 		ok.type="button";
 		ok.value="O K";
-		Object.assign(ok.style ,button_style);
 		ok.onclick = () => {
 			this.removeCheckModalWindow();
 			this.displaySendButton(id);	  // 送信ボタン表示
@@ -448,16 +364,12 @@ const GMailSendAddressChecker = {
 		let cancel = document.createElement("input");
 		cancel.type="button";
 		cancel.value="CANCEL";
-		Object.assign(cancel.style, button_style);
 		cancel.onclick = () => {
 			this.removeCheckModalWindow();
 		}
 
 		let element = document.createElement("div");
-		element.style.margin =	"10px";
-		element.style.textAlign = "center";
-		element.style.display = "flex";
-		element.style.justifyContent = "space-around";
+		element.className = "gmsac-button-area";
 		element.appendChild(ok);
 		element.appendChild(cancel);
 
@@ -465,9 +377,20 @@ const GMailSendAddressChecker = {
 	},
 
 	// チェックボックス作成
-	createCheckbox(html) {
-		return `<input type="checkbox">${html}</input>`;
+	createCheckbox(value) {
+		const id = `${this.CHECK_BOX_ID}${this.check_box_id_counter}`;
+
+		let html = `<label>`
+		+ `<input type="checkbox" class="gmsac-checkbox-input"></input>`
+		+ `<span class="gmsac-checkbox-parts">${value}</span>`
+		+ `</label>`;
+
+		this.check_box_id_counter ++;
+
+		return html;
 	},
+	check_box_id_counter: 0,
+
 
 	// from取得
 	getFrom(edit_node) {
