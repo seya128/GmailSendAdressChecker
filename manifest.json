@@ -7,10 +7,9 @@
    } ],
    "description": "GMailのメール送信時に宛先を確認後、送信する。 (C)DORASU",
    "icons": {
-      "128": "icon128.png",
-      "48": "icon48.png"
+      "128": "icon8-6.png"
    },
    "name": "GMailSend Address Checker",
-   "version": "0.21",
+   "version": "0.22",
    "manifest_version": 2
 }

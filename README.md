@@ -1,7 +1,12 @@
 # GmailSendAdressChecker
 GMailのメール送信時に宛先を確認後、送信するChrome拡張
 
-[![Image from Gyazo](https://i.gyazo.com/61d7758ed4c08ff71ee58192ea23a96c.png)](https://gyazo.com/61d7758ed4c08ff71ee58192ea23a96c)
+## スクリーンショット
+[![Image from Gyazo](https://i.gyazo.com/45531e2e48c6074d3c0a51b28f925168.png)](https://gyazo.com/45531e2e48c6074d3c0a51b28f925168)
+[![Image from Gyazo](https://i.gyazo.com/4efed341dc98d8ebe40b062e28c8717b.png)](https://gyazo.com/4efed341dc98d8ebe40b062e28c8717b)
+[![Image from Gyazo](https://i.gyazo.com/ee98ddd7fce900f70166bf00ece585f4.png)](https://gyazo.com/ee98ddd7fce900f70166bf00ece585f4)
+[![Image from Gyazo](https://i.gyazo.com/297135e60081e9ec6ed253bf5717b810.png)](https://gyazo.com/297135e60081e9ec6ed253bf5717b810)
+[![Image from Gyazo](https://i.gyazo.com/8af5483f98090a2be5a25ae91285cc81.png)](https://gyazo.com/8af5483f98090a2be5a25ae91285cc81)
 
 ## chrome ウェブストア
  https://chrome.google.com/webstore/detail/gmailsend-address-checker/gdckkpniogfhndklmlgbnolnkbceeofp
@@ -22,6 +27,10 @@ GMailのメール送信時に宛先を確認後、送信する。 (C)DORASU
 5. 「確認」が「送信」になるので、「送信」を押して送信
   
 送り主(From)のドメインと一致しないアドレスは、赤色で表示されるので、よく確認してください。
+
+バージョン:0.22
+・アイコンの変更
+・確認ウィンドウの表示位置を調整
 
 バージョン:0.21
 ・チェック項目を文字の部分もクリック可能に変更。

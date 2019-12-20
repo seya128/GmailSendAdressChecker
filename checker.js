@@ -1,6 +1,6 @@
 const GMailSendAddressChecker = {
 
-	VERSION : "version 0.21",
+	VERSION : "version 0.22",
 
 	// アトリビュート
 	CONFIRM_BUTTON_ATTR : "gmsac-confirm",
