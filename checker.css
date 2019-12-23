@@ -80,7 +80,14 @@
 /* チェックボックス */
 /* チェックボックス */
 .gmsac-checkbox-input{
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    border: 0;
+    overflow: hidden;
+    padding: 0;
+    clip: rect(0, 0, 0, 0);
 }
 .gmsac-checkbox-parts{
     padding-left: 20px;
@@ -103,7 +110,9 @@
     background-color: #fcebeb;
 }
 
-.gmsac-checkbox-input:checked + .gmsac-checkbox-parts{
+.gmsac-checkbox-input:focus + .gmsac-checkbox-parts{
+    /* background-color: #fcebeb; */
+    box-shadow: 0 0 4px #004AA1;
 }
 .gmsac-checkbox-input + .gmsac-checkbox-parts::after{
     content: "";

@@ -1,6 +1,6 @@
 const GMailSendAddressChecker = {
 
-	VERSION : "version 0.22",
+	VERSION : "version 0.23",
 
 	// アトリビュート
 	CONFIRM_BUTTON_ATTR : "gmsac-confirm",
@@ -382,7 +382,7 @@ const GMailSendAddressChecker = {
 
 		let html = `<label>`
 		+ `<input type="checkbox" class="gmsac-checkbox-input"></input>`
-		+ `<span class="gmsac-checkbox-parts">${value}</span>`
+		+ `<span class="gmsac-checkbox-parts" >${value}</span>`
 		+ `</label>`;
 
 		this.check_box_id_counter ++;
