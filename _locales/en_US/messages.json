@@ -1,0 +1,4 @@
+{
+    "ext_name": { "message": "GMailSend Address Checker" },
+    "ext_desc": { "message": "Before sending e-mail, check From, To, Cc, Bcc, subject, and attached files to prevent erroneous transmission. (C)DORASU" }
+}

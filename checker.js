@@ -1,6 +1,6 @@
 const GMailSendAddressChecker = {
 
-	VERSION : "version 0.23",
+	VERSION : "version 0.23.2",
 
 	// アトリビュート
 	CONFIRM_BUTTON_ATTR : "gmsac-confirm",
@@ -24,17 +24,52 @@ const GMailSendAddressChecker = {
 
 	// 表示文字
 	display_text_tbl : {
-		"JP": {
+		"ja": {	//日本語
 			"confirm": "確認",
 			"checkall": "すべてチェックしてください",
 			"subject": "件名",
 			"attached": "添付",
 			"noattach": "添付ファイルなし",
 		},
-		"EN": {
+		"en": {	//English 
 			"confirm": "Confirm",
 			"checkall": "Please check all",
 			"subject": "Subject",
+			"attached": "Attached",
+			"noattach": "No attachment",
+		},
+		"zh-TW": {	//中文 (繁體)
+			"confirm": "確認",
+			"checkall": "請檢查所有",
+			"subject": "主旨",
+			"attached": "Attached",
+			"noattach": "No attachment",
+		},
+		"ko": {	//한국어
+			"confirm": "확인",
+			"checkall": "모두 확인하십시오",
+			"subject": "제목",
+			"attached": "Attached",
+			"noattach": "No attachment",
+		},
+		"vi": {	//Tiếng Việt
+			"confirm": "Xác nhận",
+			"checkall": "Vui lòng kiểm tra tất cả",
+			"subject": "Chủ đề",
+			"attached": "Attached",
+			"noattach": "No attachment",
+		},
+		"zh-CN": {	//中文 (简体)
+			"confirm": "确认",
+			"checkall": "请检查所有",
+			"subject": "主题",
+			"attached": "Attached",
+			"noattach": "No attachment",
+		},
+		"de": {	//Deutsch
+			"confirm": "Bestätigen",
+			"checkall": "Bitte überprüfen Sie alle",
+			"subject": "Betreff",
 			"attached": "Attached",
 			"noattach": "No attachment",
 		},
@@ -105,8 +140,8 @@ const GMailSendAddressChecker = {
 				// 送信ボタンを探す
 				const send_button = this.findSendButton(node);
 				if (send_button) {
-					// 送信ボタンのテキストから言語コード取得
-					this.lang = this.judgeLanguage(send_button.innerText);
+					// htmlタグのlangから言語コード取得
+					this.lang = document.documentElement.lang;
 
 					// 確認ボタンを追加する
 					this.insertConfirmButton(send_button, id);
@@ -203,25 +238,19 @@ const GMailSendAddressChecker = {
 	// 多言語対応
 	//-------------------------------------------------------
 	  
-	//言語を判断する
-	//  送信ボタンのテキストを判定し、言語コードを返します。
-	//	テキストの最初の２文字が"送信"の場合、JP
-	//  それ以外は、EN
-	judgeLanguage(send_text) {
-		if (send_text.match(/送信/))
-			return 'JP';
-		else
-			return 'EN';
-	},
-
 	//表示文字取得
 	getDisplayText(type) {
 		if (!this.lang)
-			this.lang = 'EN';
+			this.lang = 'en';
 		if (!this.display_text_tbl[this.lang])
-			this,lang = 'EN';
+			this.lang = 'en';
 		
-		return this.display_text_tbl[this.lang][type];
+		let text = this.display_text_tbl[this.lang][type];
+		if (!text) {
+			text = this.display_text_tbl['en'][type];
+		}
+
+		return text;
 	},
 
 
@@ -479,3 +508,8 @@ const GMailSendAddressChecker = {
 // 起動
 console.log("GMail SendAddress Checker init");
 GMailSendAddressChecker.init();
+// 言語コード確認
+console.log(`html lang = ${document.documentElement.lang}`);
+console.log(`chrome lang = ${chrome.i18n.getUILanguage()}`);
+
+
